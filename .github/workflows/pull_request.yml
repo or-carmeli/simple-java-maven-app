@@ -1,12 +1,14 @@
 name: Pull request workflow
 
 on:
-  pull_request_review:
-    types: [submitted]
+  pull_request_target:
+    types:
+      - closed
 
 jobs:
-  approved:
-    if: github.event.review.state == 'approved'
+  if_merged:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - run: echo "This PR was approved"
+    - run: |
+        echo The PR was merged

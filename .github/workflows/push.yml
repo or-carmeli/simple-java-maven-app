@@ -23,7 +23,7 @@ jobs:
       run: mvn test
 
     - name: Determine Docker image tag
-      uses: anothrnick/anothrnick-plugin@v1
+      uses: anothrnick//github-tag-action@1.64.0
       with:
         pom-path: pom.xml
         output-variable: IMAGE_TAG
@@ -38,7 +38,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push Docker image
-      uses: anothrnick/anothrnick-plugin@v1
+      uses: anothrnick//github-tag-action@1.64.0
       with:
         context: .
         push: true

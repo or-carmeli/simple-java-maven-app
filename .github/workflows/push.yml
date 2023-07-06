@@ -23,16 +23,10 @@ jobs:
           TAG="v$(echo "$LATEST_TAG" | awk -F. -v OFS=. '{$3++; print}')"
           echo "::set-output name=tag::$TAG"
 
-      - name: Test image
+      - name: Build and run image tests
         run: |
-          # Run your image test commands here
-          # If the tests fail, delete the new tag
-          if [[ tests_failed ]]; then
-            git tag -d ${{ steps.increase_tag.outputs.tag }}
-            git push origin :refs/tags/${{ steps.increase_tag.outputs.tag }}
-            echo "Image tests failed. Deleted the new tag."
-            exit 1
-          fi
+          docker build -f tests/Dockerfile.test -t your-application-image-test .
+          docker run your-application-image-test
 
       - name: Increase pom.xml version
         run: mvn versions:set -DnewVersion=$(echo $(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) | awk -F. -v OFS=. '{$3++; print}')

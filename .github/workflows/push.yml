@@ -1,49 +1,54 @@
 name: Push to Development Pipeline
 
-on: 
+on:
   push:
-    branches: [ development ]
+    branches:
+      - development
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set up JDK 11
-      uses: actions/setup-java@v1
-      with:
-        java-version: 11
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
 
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-      
-    - name: Test
-      run: mvn test
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
 
-    - name: Determine Docker image tag
-      uses: anothrnick/github-tag-action@1.64.0
-      with:
-        pom-path: pom.xml
-        output-variable: IMAGE_TAG
+      - name: Determine latest tag
+        id: latest_tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git describe --abbrev=0 --tags)
+          echo "::set-output name=tag::$LATEST_TAG"
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Determine Docker image tag
+        id: determine_tag
+        run: |
+          VERSION=$(echo "${{ steps.latest_tag.outputs.tag }}" | sed 's/v//')
+          TAG="v$(echo "$VERSION" | awk -F. -v OFS=. '{$3++; print}')"
+          echo "::set-output name=tag::$TAG"
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: true
-        tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ env.IMAGE_TAG }}
-        
-    - name: Create PR
-      uses: repo-sync/pull-request@v2
-      with:
-        destination_branch: "master"  
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.determine_tag.outputs.tag }}
+
+      - name: Create PR
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: "master"  
+          github_token: ${{ secrets.GITHUB_TOKEN }}

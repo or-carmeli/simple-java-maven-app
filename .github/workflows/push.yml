@@ -12,22 +12,44 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
 
-      - name: Build image with multi-stage Dockerfile
-        run: docker build -t docker.io/${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:latest .
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Test
+        run: mvn test
+    
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
-      - name: Increase image tag
-        id: increase_tag
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and run the container
+        id: build
         run: |
-          LATEST_TAG=$(echo "${{ github.ref }}" | sed 's/refs\/tags\///')
-          TAG="v$(echo "$LATEST_TAG" | awk -F. -v OFS=. '{$3++; print}')"
-          echo "::set-output name=tag::$TAG"
-
-      - name: Build and run image tests
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }} .
+          docker run --name simple-java-maven-app ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }}
+              
+      - name: Check output
+        id: check_output
         run: |
-          docker build -f /home/orcarmeli/simple-java-maven-app/tests/Dockerfile.test -t application-image-test .
-          docker run application-image-test
+          output=$(docker logs java-app)
+          if [[ "$output" != "Hello World!" ]]; then
+            exit 1
+          fi
 
+      - name: Push to Docker Hub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }}
+          
       - name: Increase pom.xml version
         run: mvn versions:set -DnewVersion=$(echo $(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) | awk -F. -v OFS=. '{$3++; print}')
 
@@ -38,15 +60,6 @@ jobs:
           git add pom.xml
           git commit -m "Increase pom.xml version"
           git push origin development
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Push image
-        run: docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.increase_tag.outputs.tag }}
 
       - name: Create Pull Request
         uses: repo-sync/pull-request@v2

@@ -1,0 +1,11 @@
+# Use a lightweight base image
+FROM maven:3.8.4-openjdk-11-slim
+
+# Set the working directory
+WORKDIR /tests
+
+# Copy the test files to the image
+COPY . /tests
+
+# Run the tests
+CMD [ "mvn", "test" ]

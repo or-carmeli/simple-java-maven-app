@@ -62,6 +62,9 @@ jobs:
       - name: Increase pom.xml version
         run: mvn versions:set -DnewVersion=$(echo $(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) | awk -F. -v OFS=. '{$3++; print}')
 
+      - name: Pull latest changes
+        run: git pull origin development
+
       - name: Push pom.xml
         run: |
           git config user.name "or-carmeli"

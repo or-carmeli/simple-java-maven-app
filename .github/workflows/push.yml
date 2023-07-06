@@ -27,9 +27,6 @@ jobs:
       with:
         pom-path: pom.xml
         output-variable: IMAGE_TAG
-        
-        echo "Docker image tag: $TAG"
-      id: determine_tag
 
     - name: Login to DockerHub
       uses: docker/login-action@v1

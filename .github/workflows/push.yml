@@ -21,17 +21,17 @@ jobs:
         run: mvn -B package --file pom.xml
 
       - name: Determine latest tag
-        id: latest_tag
+        id: determine_latest_tag
         run: |
           git fetch --tags
-          LATEST_TAG=$(git describe --abbrev=0 --tags)
-          echo "::set-output name=tag::$LATEST_TAG"
+          TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "::set-output name=tag::$TAG"
 
       - name: Determine Docker image tag
         id: determine_tag
         run: |
-          VERSION=$(echo "${{ steps.latest_tag.outputs.tag }}" | sed 's/v//')
-          TAG="v$(echo "$VERSION" | awk -F. -v OFS=. '{$3++; print}')"
+          LATEST_TAG=$(echo "${{ steps.determine_latest_tag.outputs.tag }}" | sed 's/v//')
+          TAG="v$(echo "$LATEST_TAG" | awk -F. -v OFS=. '{$3++; print}')"
           echo "::set-output name=tag::$TAG"
 
       - name: Login to DockerHub

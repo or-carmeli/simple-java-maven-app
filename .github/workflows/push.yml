@@ -25,7 +25,7 @@ jobs:
 
       - name: Build and run image tests
         run: |
-          docker build -f tests/Dockerfile.test -t application-image-test .
+          docker build -f /home/orcarmeli/simple-java-maven-app/tests/Dockerfile.test -t application-image-test .
           docker run application-image-test
 
       - name: Increase pom.xml version

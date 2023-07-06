@@ -47,7 +47,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.determine_tag.outputs.tag }}
+        tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.determine_tag.outputs.TAG }}
         
     - name: Create PR
       uses: repo-sync/pull-request@v2

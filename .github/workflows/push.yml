@@ -19,6 +19,12 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package --file pom.xml
+        
+      - name: Test
+        run: mvn test
+        
+      - name: Increase the Patch part of the jar version
+        run: mvn versions:set -DnewVersion=$(mvn -Dexec.executable=echo -Dexec.args='${project.version}' exec:exec | awk -F'.' -v OFS='.' 'NF==1{print ++$NF}; NF>1{$NF++; print}')
 
       - name: Determine latest tag
         id: determine_latest_tag

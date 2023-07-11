@@ -46,6 +46,7 @@ jobs:
         id: build
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }} .
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }} ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:latest
           docker run --name simple-java-maven-app ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }}
               
       - name: Check output
@@ -57,8 +58,10 @@ jobs:
           fi
 
       - name: Push to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }}
-          
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}simple-java-maven-app:latest
+
       - name: Increase pom.xml version
         run: mvn versions:set -DnewVersion=$(echo $(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec) | awk -F. -v OFS=. '{$3++; print}')
 

@@ -33,5 +33,11 @@ jobs:
       - name: Remove existing container
         run: docker rm simple-java-maven-app || true
 
-      - name: Run new container
-        run: docker run -d -p 5000:5000 --name simple-java-maven-app ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:latest
+      - name: SSH to EC2 instance
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.IP }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker run -d -p 5000:5000 --name simple-java-maven-app ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:latest

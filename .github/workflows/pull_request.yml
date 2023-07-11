@@ -34,7 +34,7 @@ jobs:
         run: docker rm simple-java-maven-app || true
 
       - name: SSH to EC2 instance
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.IP }}
           username: ${{ secrets.EC2_USERNAME }}

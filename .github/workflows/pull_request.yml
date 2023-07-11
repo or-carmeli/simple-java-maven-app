@@ -25,7 +25,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Pull Docker image
-        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:${{ steps.tag_action.outputs.new_tag }}
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/simple-java-maven-app:latest
 
       - name: Stop existing container
         run: docker stop simple-java-maven-app || true
